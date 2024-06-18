@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
 import streamlit as st
 from langchain_community.llms import HuggingFaceHub
 from langchain.memory import ConversationBufferWindowMemory
@@ -13,16 +7,16 @@ from langchain_community.vectorstores import FAISS
 import os
 
 def prepare_rag_llm(api_key, vector_store_name, temperature, max_length):
-    embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2", model_kwargs={'device': 'cpu'})
+    instructor_embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2", model_kwargs={'device': 'cpu'})
     vector_store_path = os.path.join("vector_store", vector_store_name)
-    loaded_db = FAISS.load_local(vector_store_path, embedding_model, allow_dangerous_deserialization=True)
-
+    loaded_db = FAISS.load_local(vector_store_path, instructor_embeddings, allow_dangerous_deserialization=True)
+    
     llm = HuggingFaceHub(
         repo_id='tiiuae/falcon-7b-instruct',
         model_kwargs={"temperature": temperature, "max_length": max_length},
         huggingfacehub_api_token=api_key
     )
-
+    
     memory = ConversationBufferWindowMemory(
         k=2, memory_key="chat_history", output_key="answer", return_messages=True
     )
@@ -47,4 +41,3 @@ def generate_answer(question, token):
     doc_source = [d.page_content for d in explanation]
 
     return answer, doc_source
-
