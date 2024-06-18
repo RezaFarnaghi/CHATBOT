@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
 import os
 from pypdf import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -29,17 +23,16 @@ def split_doc(document, chunk_size, chunk_overlap):
     return split
 
 def embedding_storing(split, create_new_vs, existing_vector_store, new_vs_name):
-    embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2", model_kwargs={'device': 'cpu'})
-    db = FAISS.from_documents(split, embedding_model)
+    instructor_embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2", model_kwargs={'device': 'cpu'})
+    db = FAISS.from_documents(split, instructor_embeddings)
 
     if create_new_vs:
         new_vs_path = os.path.join("vector_store", new_vs_name)
         os.makedirs(new_vs_path)
         db.save_local(new_vs_path)
     else:
-        load_db = FAISS.load_local(os.path.join("vector_store", existing_vector_store), embedding_model, allow_dangerous_deserialization=True)
+        load_db = FAISS.load_local(os.path.join("vector_store", existing_vector_store), instructor_embeddings, allow_dangerous_deserialization=True)
         load_db.merge_from(db)
         load_db.save_local(os.path.join("vector_store", existing_vector_store))
 
     st.success("The document has been saved.")
-
